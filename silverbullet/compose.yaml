@@ -1,0 +1,19 @@
+services:
+  silverbullet:
+    image: zefhemel/silverbullet
+    container_name: silverbullet
+    restart: unless-stopped
+    environment:
+      SB_USER: ${SB_USER}
+      SB_AUTH_TOKEN: ${SB_AUTH_TOKEN} # Required for Web Clipper. Remove if Web Clipper not required.
+      SB_SYNC_ONLY: true # Disables online mode. Change if you want to use online mode.
+      PUID: ${PUID:-1000}
+      GUID: ${GUID:-1000}
+    volumes:
+      - ./container-data/silverbullet/:/space
+    networks:
+      - caddy-network
+
+networks:
+  caddy-network:
+    external: true

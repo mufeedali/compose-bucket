@@ -1,0 +1,27 @@
+services:
+  pocket-id:
+    container_name: pocket-id
+    image: ghcr.io/pocket-id/pocket-id
+    restart: unless-stopped
+    environment:
+      PUBLIC_APP_URL: ${POCKET_PUBLIC_APP_URL}
+      TRUST_PROXY: true
+      MAXMIND_LICENSE_KEY: ${POCKET_MAXMIND_LICENSE_KEY}
+      CADDY_PORT: 5000 # NOTE: Fix for running with UID 1000 since port 80 is restricted to root
+      PUID: ${PUID:-1000}
+      GUID: ${GUID:-1000}
+    volumes:
+      - "./container-data/pocket-id:/app/backend/data"
+    # Optional healthcheck
+    healthcheck:
+      test: "curl -f http://pocket-id:5000/health"
+      interval: 1m30s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
+    networks:
+      - caddy-network
+
+networks:
+  caddy-network:
+    external: true

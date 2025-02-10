@@ -1,0 +1,22 @@
+services:
+  beaver:
+    container_name: beaver
+    image: daya0576/beaverhabits:latest
+    user: ${PUID:-1000}:${GUID:-1000}
+    environment:
+      FIRST_DAY_OF_WEEK: 0
+      HABITS_STORAGE: USER_DISK
+      MAX_USER_COUNT: 2
+      INDEX_SHOW_HABIT_COUNT: true
+      ENABLE_IOS_STANDALONE: true
+      PUID: ${PUID:-1000}
+      GUID: ${GUID:-1000}
+    volumes:
+      - ./container-data/beaver:/app/.user/
+    restart: unless-stopped
+    networks:
+      - caddy-network
+
+networks:
+  caddy-network:
+    external: true

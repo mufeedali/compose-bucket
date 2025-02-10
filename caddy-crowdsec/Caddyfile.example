@@ -1,0 +1,50 @@
+{
+	order crowdsec first
+
+	# CrowdSec Bouncer Config
+	crowdsec {
+		api_url http://crowdsec:8080
+		api_key {$CROWDSEC_API_KEY}
+	}
+
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 5mb
+			roll_keep 10
+			roll_keep_for 720h
+		}
+	}
+
+	# Trusted proxy config to pass correct IP when using Cloudflare Proxy
+	servers {
+		trusted_proxies cloudflare {
+			interval 12h
+			timeout 15s
+		}
+	}
+}
+
+(log_access) {
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 5mb
+			roll_keep 10
+			roll_keep_for 720h
+		}
+	}
+}
+
+(cloudflare_tls) {
+	# Use the ACME HTTP-01 challenge to get a cert for the configured domain.
+	tls {$EMAIL} {
+		dns cloudflare {$CF_API_TOKEN} # Use Cloudflare DNS API for Let's Encrypt ACME challenges
+		resolvers 1.1.1.1 1.0.0.1 # Specify resolver IP for DNS queries
+	}
+}
+
+service.{$BASE_DOMAIN} {  # Replace subdomain name
+	crowdsec
+	import cloudflare_tls
+	import log_access
+	reverse_proxy service-container:5000  # Replace port and container name
+}

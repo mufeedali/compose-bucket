@@ -1,0 +1,4 @@
+**/container-data/
+**/container-secrets/
+**.env
+Caddyfile

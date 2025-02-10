@@ -1,0 +1,53 @@
+services:
+  caddy:
+    build:
+      context: .
+      dockerfile: Containerfile
+    container_name: caddy
+    hostname: caddy
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      BASE_DOMAIN: ${CADDY_DOMAIN}
+      LOG_FILE: ${CADDY_LOG_FILE}
+      EMAIL: ${CADDY_EMAIL}
+      CF_API_TOKEN: ${CADDY_CF_TOKEN}
+      CROWDSEC_API_KEY: ${CADDY_CROWDSEC_API_KEY}
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    volumes:
+      - ./container-config/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./container-data/caddy/data:/data
+      - ./container-data/caddy/config:/config
+      - logs:/var/log/caddy
+    networks:
+      - caddy-network
+
+  crowdsec:
+    container_name: crowdsec
+    image: crowdsecurity/crowdsec
+    restart: unless-stopped
+    environment:
+      GID: "${GID:-1000}"
+      COLLECTIONS: crowdsecurity/caddy
+      BOUNCER_KEY_CADDY: "${CADDY_CROWDSEC_API_KEY}"
+      DISABLE_ONLINE_API: "true"
+    volumes:
+      - ./container-data/crowdsec/data:/var/lib/crowdsec/data
+      - ./container-data/crowdsec/db:/var/lib/crowdsec/db
+      - ./container-data/crowdsec/config:/etc/crowdsec
+      - ./container-config/crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
+      - logs:/var/log/caddy
+    depends_on:
+      - caddy
+    networks:
+      - caddy-network
+
+networks:
+  caddy-network:
+    external: true
+
+volumes:
+  logs:

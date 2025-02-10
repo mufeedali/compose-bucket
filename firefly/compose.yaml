@@ -1,0 +1,69 @@
+services:
+  firefly-app:
+    image: fireflyiii/core:latest
+    hostname: firefly-app
+    container_name: firefly-iii-core
+    restart: always
+    volumes:
+      - firefly-upload:/var/www/html/storage/upload
+    secrets:
+      - firefly-app-key
+      - firefly-smtp-host
+      - firefly-smtp-username
+      - firefly-smtp-password
+      - firefly-db-password
+    networks:
+      - caddy-network
+      - firefly-network
+    env_file: .env
+    depends_on:
+      - firefly-db
+
+  firefly-db:
+    image: mariadb
+    hostname: firefly-db
+    container_name: firefly-db
+    restart: always
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: yes
+      MYSQL_USER: firefly
+      MYSQL_PASSWORD_FILE: /run/secrets/firefly-db-password
+      MYSQL_DATABASE: firefly
+    networks:
+      - firefly-network
+    volumes:
+      - firefly-db:/var/lib/mysql
+    secrets:
+      - firefly-db-password
+
+  firefly-cron:
+    image: alpine
+    container_name: firefly-cron
+    restart: always
+    command: sh -c "
+      apk add tzdata
+      && ln -s /usr/share/zoneinfo/${TZ} /etc/localtime
+      | echo \"0 3 * * * wget -qO- http://app:8080/api/v1/cron/${STATIC_CRON_TOKEN};echo\"
+      | crontab -
+      && crond -f -L /dev/stdout"
+
+volumes:
+  firefly-upload:
+  firefly-db:
+
+networks:
+  firefly-network:
+  caddy-network:
+    external: true
+
+secrets:
+  firefly-app-key:
+    file: ./container-secrets/firefly-app-key
+  firefly-db-password:
+    file: ./container-secrets/firefly-db-password
+  firefly-smtp-host:
+    file: ./container-secrets/firefly-smtp-host
+  firefly-smtp-username:
+    file: ./container-secrets/firefly-smtp-username
+  firefly-smtp-password:
+    file: ./container-secrets/firefly-smtp-password

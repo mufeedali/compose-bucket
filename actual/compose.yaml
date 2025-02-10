@@ -1,0 +1,15 @@
+services:
+  actual-server:
+    container_name: actual-server
+    image: actualbudget/actual-server:latest
+    environment:
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ./container-data/actual-server:/data
+    restart: unless-stopped
+    networks:
+      - caddy-network
+
+networks:
+  caddy-network:
+    external: true
