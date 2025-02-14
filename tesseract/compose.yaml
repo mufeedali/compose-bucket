@@ -1,0 +1,32 @@
+services:
+  tesseract:
+    image: ghcr.io/asimons04/tesseract:latest
+    container_name: tesseract
+    restart: unless-stopped
+    volumes:
+      - tesseract-cache:/app/cache
+    environment:
+      # Instance Customization
+      PUBLIC_INSTANCE_URL: lemmy.world
+      PUBLIC_LOCK_TO_INSTANCE: false
+      # Feed/Sort customizations
+      PUBLIC_DEFAULT_FEED: All
+      PUBLIC_DEFAULT_COMMENT_SORT: Top
+      # UI Customizations
+      PUBLIC_THEME: dark
+      # Media cache
+      PUBLIC_ENABLE_MEDIA_PROXY: true
+      PUBLIC_ENABLE_MEDIA_CACHE: true
+      PUBLIC_ENABLE_MEDIA_PROXY_LOCAL: true
+      PUBLIC_MEDIA_CACHE_MAX_SIZE: 250
+      PUBLIC_MEDIA_CACHE_DURATION: 750
+      PUBLIC_MEDIA_PROXY_BLACKLIST: media.giphy.com
+    networks:
+      - caddy-network
+
+volumes:
+  tesseract-cache:
+
+networks:
+  caddy-network:
+    external: true

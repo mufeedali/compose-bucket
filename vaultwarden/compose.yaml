@@ -1,0 +1,76 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server
+    container_name: vaultwarden
+    hostname: vaultwarden
+    environment:
+      ADMIN_TOKEN_FILE: /run/secrets/vaultwarden-admin-token
+      SIGNUPS_VERIFY: true
+      DOMAIN: ${VAULTWARDEN_DOMAIN}
+      # SMTP
+      SMTP_HOST_FILE: /run/secrets/vaultwarden-smtp-host
+      SMTP_SECURITY: force_tls
+      SMTP_PORT: 465
+      SMTP_FROM: ${VAULTWARDEN_SMTP_FROM}
+      SMTP_USERNAME_FILE: /run/secrets/vaultwarden-smtp-username
+      SMTP_PASSWORD_FILE: /run/secrets/vaultwarden-smtp-password
+      # Mobile Push
+      PUSH_ENABLED: true
+      PUSH_INSTALLATION_ID_FILE: /run/secrets/vaultwarden-push-id
+      PUSH_INSTALLATION_KEY_FILE: /run/secrets/vaultwarden-push-key
+    env_file: .env
+    restart: unless-stopped
+    networks:
+      - vaultwarden-network
+      - caddy-network
+    volumes:
+      - ./container-data/vaultwarden/:/data/
+    secrets:
+      - vaultwarden-admin-token
+      - vaultwarden-smtp-host
+      - vaultwarden-smtp-username
+      - vaultwarden-smtp-password
+      - vaultwarden-push-id
+      - vaultwarden-push-key
+
+  vaultwarden-backup:
+    image: ttionya/vaultwarden-backup:latest
+    container_name: vaultwarden-backup
+    environment:
+      DATA_DIR: /data
+      PING_URL: ${BACKSIES_PING_URL}
+      TIMEZONE: ${BACKSIES_TZ}
+      BACKUP_KEEP_DAYS: 10
+      ZIP_PASSWORD: ${BACKSIES_PASSWORD}
+      RCLONE_REMOTE_DIR: ${BACKSIES_REMOTE_DIR}
+      CRON: "*/5 * * * *"
+    restart: unless-stopped
+    networks:
+      - vaultwarden-network
+    volumes:
+      - ./container-data/vaultwarden/:/data/
+      - vaultwarden-rclone-data:/config
+
+networks:
+  vaultwarden-network:
+  caddy-network:
+    external: true
+
+secrets:
+  vaultwarden-admin-token:
+    file: ./container-secrets/vaultwarden-admin-token
+  vaultwarden-smtp-host:
+    file: ./container-secrets/vaultwarden-smtp-host
+  vaultwarden-smtp-username:
+    file: ./container-secrets/vaultwarden-smtp-username
+  vaultwarden-smtp-password:
+    file: ./container-secrets/vaultwarden-smtp-password
+  vaultwarden-push-id:
+    file: ./container-secrets/vaultwarden-push-id
+  vaultwarden-push-key:
+    file: ./container-secrets/vaultwarden-push-key
+
+volumes:
+  vaultwarden-rclone-data:
+    external: true
+    name: vaultwarden-rclone-data

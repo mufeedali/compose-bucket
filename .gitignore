@@ -2,3 +2,4 @@
 **/container-secrets/
 **.env
 Caddyfile
+Caddyfile-Archive

@@ -1,0 +1,13 @@
+services:
+  memos:
+    image: ghcr.io/usememos/memos:latest
+    container_name: memos
+    restart: unless-stopped
+    volumes:
+      - ./container-data/memos/:/var/opt/memos
+    networks:
+      - caddy-network
+
+networks:
+  caddy-network:
+    external: true
