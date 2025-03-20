@@ -1,0 +1,45 @@
+services:
+    joplin-db:
+        image: postgres:16
+        container_name: joplin-db
+        volumes:
+            - ./container-data/joplin-db:/var/lib/postgresql/data
+        restart: unless-stopped
+        environment:
+            POSTGRES_PASSWORD: ${JOPLIN_POSTGRES_PASSWORD}
+            POSTGRES_USER: ${JOPLIN_POSTGRES_USER}
+            POSTGRES_DB: ${JOPLIN_POSTGRES_DATABASE}
+        networks:
+            - joplin-network
+
+    joplin-app:
+        image: etechonomy/joplin-server:latest
+        container_name: joplin-app
+        depends_on:
+            - joplin-db
+        restart: unless-stopped
+        environment:
+            APP_BASE_URL: ${JOPLIN_BASE_URL}
+            APP_PORT: 22300
+            DB_CLIENT: pg
+            POSTGRES_PASSWORD: ${JOPLIN_POSTGRES_PASSWORD}
+            POSTGRES_DATABASE: ${JOPLIN_POSTGRES_DATABASE}
+            POSTGRES_USER: ${JOPLIN_POSTGRES_USER}
+            POSTGRES_PORT: 5432
+            POSTGRES_HOST: joplin-db
+            MAILER_ENABLED: 1
+            MAILER_HOST: ${JOPLIN_SMTP_HOST}
+            MAILER_PORT: 465
+            MAILER_SECURITY: tls
+            MAILER_AUTH_USER: ${JOPLIN_SMTP_USER}
+            MAILER_AUTH_PASSWORD: ${JOPLIN_SMTP_PASSWORD}
+            MAILER_NOREPLY_NAME: ${JOPLIN_SMPT_MAILER_NAME}
+            MAILER_NOREPLY_EMAIL: ${JOPLIN_SMTP_FROM}
+        networks:
+            - joplin-network
+            - caddy-network
+
+networks:
+    joplin-network:
+    caddy-network:
+        external: true

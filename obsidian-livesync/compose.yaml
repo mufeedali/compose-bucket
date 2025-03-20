@@ -1,0 +1,17 @@
+services:
+  livesync-db:
+    container_name: livesync-db
+    image: couchdb
+    restart: unless-stopped
+    environment:
+      COUCHDB_USER: ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+    volumes:
+      - ./container-data/couchdb:/opt/couchdb/data
+      - ./container-data/couchdb-etc:/opt/couchdb/etc/local.d
+    networks:
+      - caddy-network
+
+networks:
+  caddy-network:
+    external: true

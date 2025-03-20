@@ -1,0 +1,40 @@
+services:
+  miniflux:
+    image: miniflux/miniflux:latest
+    container_name: miniflux
+    environment:
+      DATABASE_URL: postgres://miniflux:${MINIFLUX_DB_PASSWORD}@miniflux-db/miniflux?sslmode=disable
+      RUN_MIGRATIONS: 1
+      OAUTH2_PROVIDER: oidc
+      OAUTH2_CLIENT_ID: ${OAUTH2_CLIENT_ID}
+      OAUTH2_CLIENT_SECRET: ${OAUTH2_CLIENT_SECRET}
+      OAUTH2_REDIRECT_URL: ${OAUTH2_REDIRECT_URL}
+      OAUTH2_OIDC_DISCOVERY_ENDPOINT: ${OAUTH2_OIDC_DISCOVERY_ENDPOINT}
+      OAUTH2_USER_CREATION: 1
+      DISABLE_LOCAL_AUTH: true
+      # Required on First Run alone
+      # CREATE_ADMIN: 1
+      # ADMIN_USERNAME: admin
+      # ADMIN_PASSWORD: ${MINIFLIX_ADMIN_PASSWORD}
+    depends_on:
+      - miniflux-db
+    networks:
+      - miniflux-network
+      - caddy-network
+
+  miniflux-db:
+    image: postgres:16
+    container_name: miniflux-db
+    environment:
+      POSTGRES_USER: miniflux
+      POSTGRES_PASSWORD: ${MINIFLUX_DB_PASSWORD}
+      POSTGRES_DB: miniflux
+    volumes:
+      - ./container-data/:/var/lib/postgresql/data
+    networks:
+      - miniflux-network
+
+networks:
+  miniflux-network:
+  caddy-network:
+    external: true
